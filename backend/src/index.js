@@ -14,13 +14,19 @@ let mongoServer;
 
 const startServer = async () => {
   try {
-    // Start Memory Server
-    mongoServer = await MongoMemoryServer.create();
-    const mongoUri = mongoServer.getUri();
+    let mongoUri = process.env.MONGODB_URI;
+
+    if (mongoUri) {
+        console.log('Connecting to production MongoDB...');
+    } else {
+        console.log('No MONGODB_URI found, starting MongoMemoryServer for development...');
+        mongoServer = await MongoMemoryServer.create();
+        mongoUri = mongoServer.getUri();
+    }
     
     // Connect to mongoose
     await mongoose.connect(mongoUri);
-    console.log(`MongoDB successfully connected to memory server at ${mongoUri}`);
+    console.log(`MongoDB successfully connected to ${mongoUri.startsWith('mongodb+srv') ? 'Production' : 'Memory'} server`);
 
     // Fetch Real Data or Seed Mock Data
     await fetchRealData();
